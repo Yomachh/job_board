@@ -37,8 +37,8 @@ class MojposaoSpider(scrapy.Spider):
                     'Mjesto': mjesta,
                     'Tvrtka': featured_job.xpath('.//img[@class="logo"]/@title').extract(),
                     'Pozicija': pozicija.strip(),
-                    'vrijedi_do': vrijedi_do,
-                    'link_za_posao': link_za_posao
+                    'Vrijedi_do': vrijedi_do,
+                    'Link_za_posao': link_za_posao
                 }
 
         for job in response.selector.xpath('//*[@class="general-info"]'):
@@ -49,8 +49,8 @@ class MojposaoSpider(scrapy.Spider):
                     'Mjesto':  job.xpath('.//*[@class="job-location"]/text()').extract(),
                     'Tvrtka': job.xpath('.//*[@class="job-company"]/a/text()').extract() or job.xpath('.//*[@class="job-company"]/text()').extract(),
                     'Pozicija': pozicija.strip(),
-                    'vrijedi_do': job.xpath('.//*[@class="deadline"]/time/text()').extract(),
-                    'link_za_posao': job.xpath('.//*[@class="job-title"]/a/@href').extract()
+                    'Vrijedi_do': job.xpath('.//*[@class="deadline"]/time/text()').extract(),
+                    'Link_za_posao': job.xpath('.//*[@class="job-title"]/a/@href').extract()
                     }
 
         for next_page in response.selector.xpath('*//*[@class="next icon"]/a/@href').extract():

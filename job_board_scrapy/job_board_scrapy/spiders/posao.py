@@ -32,8 +32,8 @@ class PosaoSpider(scrapy.Spider):
                 'Mjesto': special_job.xpath('./a/div/div/span/text()').extract()[0],
                 'Tvrtka': special_job.xpath('../div/a/img/@alt').extract()[0],
                 'Pozicija': special_job.xpath('./a/strong/text()').extract(),
-                'vrijedi_do': special_job.xpath('./a/div/div/span/text()').extract()[1],
-                'link_za_posao': special_job.xpath('./a/@href').extract()
+                'Vrijedi_do': special_job.xpath('./a/div/div/span/text()').extract()[1],
+                'Link_za_posao': special_job.xpath('./a/@href').extract()
                 }
 
         if first_page == True:
@@ -53,8 +53,8 @@ class PosaoSpider(scrapy.Spider):
                 'Mjesto': mjesto,
                 'Tvrtka': tvrtka,
                 'Pozicija': pozicija,
-                'vrijedi_do': datum,
-                'link_za_posao': link
+                'Vrijedi_do': datum,
+                'Link_za_posao': link
                 }
 
         next_page = response.selector.xpath('*//span[@class="pages"]/a/@href').extract()
