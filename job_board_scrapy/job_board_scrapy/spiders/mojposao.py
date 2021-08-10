@@ -1,25 +1,23 @@
 import scrapy
 from scrapy import Request
 from peewee import *
-import pdb
 
 db = SqliteDatabase('mojposao.db')
 
-class Jobbb(Model):
+class MojPosao(Model):
 
-    # id = AutoField()
     db_zupanija = TextField()
     db_mjesto = TextField()
-    db_tvrtka = TextField(null = True) # null = True
+    db_tvrtka = TextField()
     db_pozicija = TextField()
-    db_vrijedi_do = TextField() # * date_time kasnije (ima modul)
+    db_vrijedi_do = TextField()
     db_link_za_posao = TextField()
 
     class Meta:
         database = db
 
 db.connect()
-db.create_tables([Jobbb])
+db.create_tables([MojPosao])
 
 class MojposaoSpider(scrapy.Spider):
 
@@ -51,28 +49,64 @@ class MojposaoSpider(scrapy.Spider):
             linkovi_za_poslove = featured_job.xpath('.//*[@class="job-data"]/a/@href').extract()
 
             for pozicija, mjesta, vrijedi_do, link_za_posao in zip(pozicije, mjesta, vrijede_do, linkovi_za_poslove):
-                Jobbb.create(
+                tvrtka = featured_job.xpath('.//img[@class="logo"]/@title').extract()[0]
+                pozicija = pozicija.strip()
+
+                MojPosao.create(
                     db_zupanija=zupanije,
                     db_mjesto=mjesta,
-                    db_tvrtka=featured_job.xpath('.//img[@class="logo"]/@title').extract(),
-                    db_pozicija=pozicija.strip(),
+                    db_tvrtka=tvrtka,
+                    db_pozicija=pozicija,
                     db_link_za_posao=link_za_posao,
                     db_vrijedi_do=vrijedi_do
                     )
+
+                yield {
+                    'Zupanija': zupanije,
+                    'Mjesto': mjesta,
+                    'Tvrtka': tvrtka,
+                    'Pozicija': pozicija,
+                    'Vrijedi_do': vrijedi_do,
+                    'Link_za_posao': link_za_posao
+                }
 
 
         for job in response.selector.xpath('//*[@class="general-info"]'):
             pozicije = job.xpath('.//*[@class="job-title"]/a/text()').extract()
             for pozicija in pozicije:
-               # breakpoint()
-                Jobbb.create(
+                pozicija = pozicija.strip()
+                mjesto = job.xpath('.//*[@class="job-location"]/text()').extract()
+                vrijeme = job.xpath('.//*[@class="deadline"]/time/text()').extract()
+                link = job.xpath('.//*[@class="job-title"]/a/@href').extract()
+                tvrtka = job.xpath('.//*[@class="job-company"]/a/text()').extract() or job.xpath('.//*[@class="job-company"]/text()').extract()
+
+                if type(mjesto) == list:
+                    mjesto = mjesto[0]
+                if type(tvrtka) == list:
+                    tvrtka = tvrtka[0]
+                if type(vrijeme) == list:
+                    vrijeme = vrijeme[0]
+                if type(link) == list:
+                    link = link[0]
+
+                yield {
+                    'Zupanija': zupanije,
+                    'Mjesto':  mjesto,
+                    'Tvrtka': tvrtka,
+                    'Pozicija': pozicija,
+                    'Vrijedi_do': vrijeme,
+                    'Link_za_posao': link
+                    }
+
+                MojPosao.create(
                     db_zupanija=zupanije,
-                    db_mjesto=job.xpath('.//*[@class="job-location"]/text()').extract(),
-                    db_tvrta=job.xpath('.//*[@class="job-company"]/a/text()').extract() or job.xpath('.//*[@class="job-company"]/text()').extract(),
-                    db_pozicija=pozicija.strip(),
-                    db_vrijedi_do=job.xpath('.//*[@class="deadline"]/time/text()').extract(),
-                    db_link_za_posao=job.xpath('.//*[@class="job-title"]/a/@href').extract()
+                    db_mjesto=mjesto,
+                    db_tvrtka=tvrtka,
+                    db_pozicija=pozicija,
+                    db_vrijedi_do=vrijeme,
+                    db_link_za_posao=link
                     )
+
 
         for next_page in response.selector.xpath('*//*[@class="next icon"]/a/@href').extract():
             yield Request(url=next_page, callback=self.parse, cb_kwargs=dict(zupanije=zupanije))
