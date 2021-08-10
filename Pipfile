@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+black = "*"
 
 [packages]
 scrapy = "~=2.4"
@@ -12,3 +13,6 @@ peewee = "~=3.14.4"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true

@@ -1,6 +1,25 @@
 import scrapy
 from scrapy import Request
+from peewee import *
+import pdb
 
+db = SqliteDatabase('mojposao.db')
+
+class Jobbb(Model):
+
+    # id = AutoField()
+    db_zupanija = TextField()
+    db_mjesto = TextField()
+    db_tvrtka = TextField(null = True) # null = True
+    db_pozicija = TextField()
+    db_vrijedi_do = TextField() # * date_time kasnije (ima modul)
+    db_link_za_posao = TextField()
+
+    class Meta:
+        database = db
+
+db.connect()
+db.create_tables([Jobbb])
 
 class MojposaoSpider(scrapy.Spider):
 
@@ -32,26 +51,31 @@ class MojposaoSpider(scrapy.Spider):
             linkovi_za_poslove = featured_job.xpath('.//*[@class="job-data"]/a/@href').extract()
 
             for pozicija, mjesta, vrijedi_do, link_za_posao in zip(pozicije, mjesta, vrijede_do, linkovi_za_poslove):
-                yield {
-                    'Zupanija': zupanije,
-                    'Mjesto': mjesta,
-                    'Tvrtka': featured_job.xpath('.//img[@class="logo"]/@title').extract(),
-                    'Pozicija': pozicija.strip(),
-                    'Vrijedi_do': vrijedi_do,
-                    'Link_za_posao': link_za_posao
-                }
+                Jobbb.create(
+                    db_zupanija=zupanije,
+                    db_mjesto=mjesta,
+                    db_tvrtka=featured_job.xpath('.//img[@class="logo"]/@title').extract(),
+                    db_pozicija=pozicija.strip(),
+                    db_link_za_posao=link_za_posao,
+                    db_vrijedi_do=vrijedi_do
+                    )
+
 
         for job in response.selector.xpath('//*[@class="general-info"]'):
             pozicije = job.xpath('.//*[@class="job-title"]/a/text()').extract()
             for pozicija in pozicije:
-                yield {
-                    'Zupanija': zupanije,
-                    'Mjesto':  job.xpath('.//*[@class="job-location"]/text()').extract(),
-                    'Tvrtka': job.xpath('.//*[@class="job-company"]/a/text()').extract() or job.xpath('.//*[@class="job-company"]/text()').extract(),
-                    'Pozicija': pozicija.strip(),
-                    'Vrijedi_do': job.xpath('.//*[@class="deadline"]/time/text()').extract(),
-                    'Link_za_posao': job.xpath('.//*[@class="job-title"]/a/@href').extract()
-                    }
+               # breakpoint()
+                Jobbb.create(
+                    db_zupanija=zupanije,
+                    db_mjesto=job.xpath('.//*[@class="job-location"]/text()').extract(),
+                    db_tvrta=job.xpath('.//*[@class="job-company"]/a/text()').extract() or job.xpath('.//*[@class="job-company"]/text()').extract(),
+                    db_pozicija=pozicija.strip(),
+                    db_vrijedi_do=job.xpath('.//*[@class="deadline"]/time/text()').extract(),
+                    db_link_za_posao=job.xpath('.//*[@class="job-title"]/a/@href').extract()
+                    )
 
         for next_page in response.selector.xpath('*//*[@class="next icon"]/a/@href').extract():
             yield Request(url=next_page, callback=self.parse, cb_kwargs=dict(zupanije=zupanije))
+
+
+db.close()
