@@ -238,7 +238,6 @@ def svi_poslovi_u_mjestu(datum, mjesto):
 def broj_poslova_u_zupaniji(datum, zupanija):
     datum = datetime.strptime(datum, "%Y-%m-%d").date()
     counter = 0
-    svi_poslovi = list()
     for job in Posaohr.select().where(Posaohr.zupanija == zupanija):
         if datum == job.datum_prikupljanja:
             counter += 1
@@ -247,7 +246,7 @@ def broj_poslova_u_zupaniji(datum, zupanija):
             counter += 1
     if counter == 0:
         return (
-            jsonify({"Poruka": "Nismo nasli poslove na ovaj datum."}),
+            jsonify({"Poruka": "Nismo nasli poslove na ovaj datum ili zupanija ne postoji."}),
             404,
         )
     return jsonify({"Broj poslova unutar zupanije": counter})
