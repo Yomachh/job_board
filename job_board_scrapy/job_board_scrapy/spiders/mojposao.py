@@ -77,7 +77,7 @@ class MojposaoSpider(scrapy.Spider):
                     pozicija=j_pozicija,
                     link_za_posao=j_link_za_posao,
                     vrijedi_do=j_vrijedi_do,
-                    datum_prikupljanja=j_datum_prikupljanja
+                    datum_prikupljanja=j_datum_prikupljanja,
                 )
 
                 yield {
@@ -126,7 +126,7 @@ class MojposaoSpider(scrapy.Spider):
                     pozicija=j_pozicija,
                     vrijedi_do=j_vrijeme,
                     link_za_posao=j_link,
-                    datum_prikupljanja=j_datum_prikupljanja
+                    datum_prikupljanja=j_datum_prikupljanja,
                 )
 
         for next_page in response.selector.xpath(
