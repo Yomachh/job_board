@@ -234,5 +234,24 @@ def svi_poslovi_u_mjestu(datum, mjesto):
     return jsonify(svi_poslovi)
 
 
+@app.route("/broj_poslova_u_zupaniji/<datum>/<string:zupanija>", methods=["GET"])
+def broj_poslova_u_zupaniji(datum, zupanija):
+    datum = datetime.strptime(datum, "%Y-%m-%d").date()
+    counter = 0
+    svi_poslovi = list()
+    for job in Posaohr.select().where(Posaohr.zupanija == zupanija):
+        if datum == job.datum_prikupljanja:
+            counter += 1
+    for job in Mojposao.select().where(Mojposao.zupanija == zupanija):
+        if datum == job.datum_prikupljanja:
+            counter += 1
+    if counter == 0:
+        return (
+            jsonify({"Poruka": "Nismo nasli poslove na ovaj datum."}),
+            404,
+        )
+    return jsonify({"Broj poslova unutar zupanije": counter})
+
+
 app.run(port=5000)
 db.close()
